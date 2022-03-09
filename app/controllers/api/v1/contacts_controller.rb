@@ -1,4 +1,6 @@
-class Api::V1::ContactsController < ApplicationController
+class Api::V1::ContactsController < ApiController
+
+    
     def index
         @contacts = Contact.all
 
@@ -6,14 +8,22 @@ class Api::V1::ContactsController < ApplicationController
     end
 
     def show
-        render json: Contact.find(params[:id])
+        @contact = Contact.find(params[:id])
+        if @contact
+            render json: @contact, status: :ok
+        else
+            head(:unprocessable_entity)
+        end
     end
 
     def create
         @contact = Contact.new(contact_params)
-        @contact.save
+        if @contact.save
+            render json: @contact, status: :created
+        else
+            render json: @contact.errors, status: :unprocessable_entity
+        end
 
-        render json: @contact, status: :created
     end
 
     def update
@@ -26,12 +36,11 @@ class Api::V1::ContactsController < ApplicationController
     end
 
     def destroy
-        @contact = Contact.where(id: params[:id]).first
-        if @contact.destroy
-            head(:ok)
-        else
-            head(:unprocessable_entity)
-        end
+        Contact.find(params[:id]).destroy!
+        
+        head(:no_content)
+        
+        
     end
 
     private
